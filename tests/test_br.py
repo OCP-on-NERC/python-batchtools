@@ -44,6 +44,7 @@ def test_invalid_gpu(args: argparse.Namespace):
         ),
     ],
 )
+@mock.patch("batchtools.br.log_job_output", return_value=("succeeded", 1.0, 0.5, 1.5))
 @mock.patch("openshift_client.create", name="create")
 @mock.patch("openshift_client.selector", name="selector")
 @mock.patch("socket.gethostname", name="gethostname")
@@ -53,6 +54,7 @@ def test_create_job_nowait(
     mock_gethostname,
     mock_selector,
     mock_create,
+    mock_log_job_output,
     gpu,
     resources,
     args: argparse.Namespace,
@@ -60,6 +62,11 @@ def test_create_job_nowait(
     parser,
     subparsers,
 ):
+    """
+    Even if args.wait is False, CreateJobCommand.run should still build the
+    correct Job object and call oc.create() with it. We stub out
+    log_job_output so this test does not depend on pod selectors or timing.
+    """
     CreateJobCommand.build_parser(subparsers)
     args = parser.parse_args(["br"])
     args.wait = False
@@ -82,7 +89,7 @@ def test_create_job_nowait(
         }
     )
 
-    mock_result = mock.Mock(spec=["object"])
+    mock_result = mock.Mock()
     mock_result.object.return_value = pod
     mock_selector.return_value = mock_result
 
@@ -121,10 +128,17 @@ def test_create_job_nowait(
         },
     }
 
+    # Make the rsync_script simple and deterministic for the test
     batchtools.build_yaml.rsync_script = "testcommand {cmdline}"
+
     CreateJobCommand.run(args)
 
+    # Verify we created the expected Job spec
     assert mock_create.call_args.args[0] == expected
+    # And that we did call log_job_output once (even with wait=False)
+    mock_log_job_output.assert_called_once()
+    called_job_name = mock_log_job_output.call_args.kwargs["job_name"]
+    assert called_job_name == f"job-{gpu}-test"
 
 
 @mock.patch("openshift_client.create", name="create")

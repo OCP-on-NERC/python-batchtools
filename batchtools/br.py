@@ -1,4 +1,3 @@
-# pyright: reportUninitializedInstanceVariable=false
 from typing import cast
 from typing_extensions import override, Optional
 
@@ -185,10 +184,9 @@ class CreateJobCommand(Command):
             queue_wait = None
             total_wall = None
 
-            if args.wait:
-                result_phase, run_elapsed, queue_wait, total_wall = log_job_output(
-                    job_name=job_name, wait=True, timeout=args.timeout
-                )
+            result_phase, run_elapsed, queue_wait, total_wall = log_job_output(
+                job_name=job_name, wait=True, timeout=args.timeout
+            )
 
             if (
                 run_elapsed is not None
@@ -270,48 +268,48 @@ def log_job_output(
     queue_wait = None
     total_wall = None
 
-    if wait:
-        start_poll = time.monotonic()
-        while True:
-            phase = get_pod_status(pod_name)
-            if phase == "Running" and run_start is None:
-                # time waiting in queue is time from entering the queue to the time it takes to start running
-                run_start = time.monotonic()
-                queue_wait = run_start - start_poll  # submit -> running
+    start_poll = time.monotonic()
+    while True:
+        phase = get_pod_status(pod_name)
+        if phase == "Running" and run_start is None:
+            # time waiting in queue is time from entering the queue to the time it takes to start running
+            run_start = time.monotonic()
+            queue_wait = run_start - start_poll  # submit -> running
 
-            if phase in ("Succeeded", "Failed"):
-                result_phase = phase.lower()
-                total_wall = time.monotonic() - start_poll  # submit -> terminal
-                print(f"Pod {pod_name} finished with phase={phase}")
-                break
+        if phase in ("Succeeded", "Failed"):
+            result_phase = phase.lower()
+            total_wall = time.monotonic() - start_poll  # submit -> terminal
+            print(f"Pod {pod_name} finished with phase={phase}")
+            break
 
-            if timeout and (time.monotonic() - start_poll) > timeout:
+        if timeout and (time.monotonic() - start_poll) > timeout:
+            if wait:
                 print(f"Timeout waiting for pod {pod_name} to complete")
                 print(f"Deleting job {job_name}")
                 oc_delete("job", job_name)
-                total_wall = time.monotonic() - start_poll
-                # timeout: no run duration (didn't finish), queue_wait may or may not be set
-                print_timing(queue_wait, None, total_wall)
-                return ("timeout", None, queue_wait, total_wall)
+            total_wall = time.monotonic() - start_poll
+            # timeout: no run duration (didn't finish), queue_wait may or may not be set
+            print_timing(queue_wait, None, total_wall)
+            return ("timeout", None, queue_wait, total_wall)
 
-            time.sleep(2)
+        time.sleep(2)
 
     print(pretty_print(pod))
 
     # compute the runtime using the total time (total_wall)- time waiting in queue (queue_wait)
-    if wait:
-        if run_start is not None:
-            # running status was reached, run_elapsed = terminal - run_start
-            if total_wall is None:
-                total_wall = time.monotonic() - start_poll  # fallback
-            run_elapsed = total_wall - (queue_wait or 0.0)
-        else:
-            # Never reached Running; keep convention for failures:
-            run_elapsed = 0.0 if result_phase == "failed" else None
-            if total_wall is None:
-                total_wall = 0.0
-            if total_wall is not None and queue_wait is None:
-                queue_wait = total_wall
+
+    if run_start is not None:
+        # running status was reached, run_elapsed = terminal - run_start
+        if total_wall is None:
+            total_wall = time.monotonic() - start_poll  # fallback
+        run_elapsed = total_wall - (queue_wait or 0.0)
+    else:
+        # Never reached Running; keep convention for failures:
+        run_elapsed = 0.0 if result_phase == "failed" else None
+        if total_wall is None:
+            total_wall = 0.0
+        if total_wall is not None and queue_wait is None:
+            queue_wait = total_wall
 
     print_timing(queue_wait, run_elapsed, total_wall)
     return (result_phase, run_elapsed, queue_wait, total_wall)
