@@ -1,4 +1,3 @@
-import subprocess
 from datetime import datetime, timezone
 from .helpers import is_on_project
 
@@ -18,9 +17,8 @@ from prometheus_client import (
 
 LONG_JOB_BUCKETS = (1, 2, 5, 10, 20, 30, 60, 120, 180, 300, 600, 900, float("inf"))
 
-PUSHGATEWAY_ADDR = os.getenv(
-    "PUSHGATEWAY_ADDR", "pushgateway.ope-test.svc:9091"
-)
+PUSHGATEWAY_ADDR = os.getenv("PUSHGATEWAY_ADDR", "pushgateway.ope-test.svc:9091")
+
 
 def detect_instance() -> str:
     if shutil.which("oc") is None:
@@ -94,6 +92,7 @@ TOTAL_WALL_COUNT = Counter(
     registry=registry,
 )
 
+
 def now_rfc3339() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -140,6 +139,7 @@ def generate_metrics_text() -> tuple[str, str]:
     """Return (body, content_type) for the current registry."""
     payload = generate_latest(registry)
     return payload.decode("utf-8"), CONTENT_TYPE_LATEST
+
 
 def push_registry_text(grouping_key: dict[str, str] | None = None) -> None:
     if not PUSHGATEWAY_ADDR:

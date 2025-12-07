@@ -21,7 +21,6 @@ from .file_setup import prepare_context
 from .prom_metrics import (
     PROMETHEUS_INSTANCE,
     IN_PROGRESS,
-    # record helpers (emit both histogram + counter)
     record_batch_observation,
     record_queue_observation,
     record_wall_observation,
@@ -191,7 +190,6 @@ class CreateJobCommand(Command):
                     job_name=job_name, wait=True, timeout=args.timeout
                 )
 
-            # Emit metrics if we captured any timing
             if (
                 run_elapsed is not None
                 or queue_wait is not None
@@ -222,8 +220,8 @@ class CreateJobCommand(Command):
                 IN_PROGRESS.labels(**labels, result=result_phase).dec()
 
                 group = {
-                    "instance": PROMETHEUS_INSTANCE,  # e.g. "ope-test"
-                    "job_name": job_name            # e.g. "job-none-b799d46a6f995a9d8d58b6aff76abefc"
+                    "instance": PROMETHEUS_INSTANCE,  # oc project
+                    "job_name": job_name,  # unique name
                 }
 
                 push_registry_text(grouping_key=group)
