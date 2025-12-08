@@ -10,5 +10,5 @@ spec:
     matchLabels:
       app: pushgateway
   endpoints:
-    - port: http        # <- must match the Service port name
+    - port: http
       interval: 15s

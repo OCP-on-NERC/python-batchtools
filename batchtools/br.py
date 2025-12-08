@@ -222,6 +222,7 @@ class CreateJobCommand(Command):
                     "job_name": job_name,  # unique name
                 }
 
+                # use grouping key to help aggregate data
                 push_registry_text(grouping_key=group)
 
         except oc.OpenShiftPythonException as e:
