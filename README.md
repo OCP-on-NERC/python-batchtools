@@ -3,7 +3,7 @@
 ## Overview
 
 `python-batchtools` is a CLI for students and researchers to
-submit **GPU batch jobs** through **Kueue-managed GPU queues** on an
+submit **GPU batch jobs** through Kueue-managed GPU queues on an
 OpenShift cluster. It provides an inexpensive and accessible way to use
 GPU hardware without reserving dedicated GPU nodes.
 
@@ -13,7 +13,7 @@ Users submit GPU jobs with a single command:
 batchtools br "./cuda_program"
 ```
 
-The CLI automatically:
+The CLI will automatically:
 - Creates the batch job<br>
 - Submits it to the appropriate Kueue-managed LocalQueue<br>
 - Tracks job status<br>
@@ -37,13 +37,14 @@ pip install -e .
 
 ## Prerequisites
 
-1.  A Kueue-enabled OpenShift cluster, with local-queues named: v100-localqueue, a100-localqueue, h100-localqueue, dummy-localqueue<br>
+1.  A Kueue-enabled OpenShift cluster, with localqueues named: v100-localqueue, a100-localqueue, h100-localqueue, dummy-localqueue<br>
 2.  An OpenShift account<br>
 3.  The Python OpenShift client:
 
 ``` sh
 pip install openshift-client
 ```
+4. RBAC permissions for the user to have access to jobs, kueue resources like localqueues and clusterqueues. See **rbac** folder for setup.
 
 # Usage Examples
 
