@@ -22,6 +22,9 @@ rsync -q --archive --no-owner --no-group \
     --omit-dir-times --no-relative --numeric-ids  \
     --exclude-from={job_name}/gotlist \
     {job_name} {devpod_name}:{jobs_dir}
+
+oc rsh {devpod_name} rm -f \
+  {jobs_dir}/{job_name}/getlist
 """
 
 
