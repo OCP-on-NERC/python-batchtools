@@ -17,7 +17,7 @@ from prometheus_client import (
 
 LONG_JOB_BUCKETS = (1, 2, 5, 10, 20, 30, 60, 120, 180, 300, 600, 900, float("inf"))
 
-PUSHGATEWAY_ADDR = os.getenv("PUSHGATEWAY_ADDR", "pushgateway.ope-test.svc:9091")
+PUSHGATEWAY_ADDR = os.getenv("PUSHGATEWAY_ADDR", "pushgateway.pushgateway.svc:9091")
 
 
 def detect_instance() -> str:
