@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pushgateway
-  namespace: ope-test
+  namespace: pushgateway
   labels:
     app: pushgateway
 spec:
@@ -38,7 +38,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pushgateway
-  namespace: ope-test
+  namespace: pushgateway
   labels:
     app: pushgateway
 spec:
