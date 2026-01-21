@@ -290,7 +290,7 @@ def log_job_output(
                 oc_delete("job", job_name)
             total_wall = time.monotonic() - start_poll
             # timeout: no run duration (didn't finish), queue_wait may or may not be set
-            # print_timing(queue_wait, None, total_wall)
+            print_timing(queue_wait, None, total_wall)
             return ("timeout", None, queue_wait, total_wall)
 
         time.sleep(2)
