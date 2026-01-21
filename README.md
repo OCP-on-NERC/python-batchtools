@@ -29,7 +29,7 @@ The CLI automatically:
 ### Option 2: Install from source
 
 ``` sh
-git clone https://github.com/memalhot/python-batchtools.git
+git clone -b metrics https://github.com/OCP-on-NERC/python-batchtools.git
 cd python-batchtools
 pip install -e .
 ```
