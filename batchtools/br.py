@@ -7,13 +7,13 @@ import socket
 import sys
 import time
 import uuid
+import subprocess
 
 import openshift_client as oc
 
 from .basecommand import Command
 from .basecommand import SubParserFactory
 from .build_yaml import build_job_body
-from .helpers import pretty_print
 from .helpers import oc_delete
 from .helpers import fmt
 from .file_setup import prepare_context
@@ -175,9 +175,9 @@ class CreateJobCommand(Command):
                 getlist_path=getlist,
             )
 
-            print(f"Creating job {job_name} in {queue_name}...")
+            # print(f"Creating job {job_name} in {queue_name}...")
             oc.create(job_body)
-            print(f"Job {job_name} created successfully.")
+            # print(f"Job {job_name} created successfully.")
 
             result_phase = "unknown"
             run_elapsed = None
@@ -229,6 +229,7 @@ class CreateJobCommand(Command):
             sys.exit(f"Error occurred while creating job: {e}")
 
         if args.job_delete and args.wait:
+            subprocess.run(["cat", f"jobs/{job_name}.log"], check=True)
             print(f"RUNDIR: jobs/{job_name}")
             oc_delete("job", job_name)
         else:
@@ -257,7 +258,7 @@ def log_job_output(
     """
     pods = oc.selector("pod", labels={"job-name": job_name}).objects()
     if not pods:
-        print(f"No pods found for job {job_name}")
+        # print(f"No pods found for job {job_name}")
         return ("unknown", None, None, None)
 
     pod = pods[0]
@@ -280,7 +281,7 @@ def log_job_output(
         if phase in ("Succeeded", "Failed"):
             result_phase = phase.lower()
             total_wall = time.monotonic() - start_poll  # submit -> terminal
-            print(f"Pod {pod_name} finished with phase={phase}")
+            # print(f"Pod {pod_name} finished with phase={phase}")
             break
 
         if timeout and (time.monotonic() - start_poll) > timeout:
@@ -290,12 +291,12 @@ def log_job_output(
                 oc_delete("job", job_name)
             total_wall = time.monotonic() - start_poll
             # timeout: no run duration (didn't finish), queue_wait may or may not be set
-            print_timing(queue_wait, None, total_wall)
+            # print_timing(queue_wait, None, total_wall)
             return ("timeout", None, queue_wait, total_wall)
 
         time.sleep(2)
 
-    print(pretty_print(pod))
+    # print(pretty_print(pod))
 
     # compute the runtime using the total time (total_wall)- time waiting in queue (queue_wait)
 
@@ -312,18 +313,18 @@ def log_job_output(
         if total_wall is not None and queue_wait is None:
             queue_wait = total_wall
 
-    print_timing(queue_wait, run_elapsed, total_wall)
+    # print_timing(queue_wait, run_elapsed, total_wall)
     return (result_phase, run_elapsed, queue_wait, total_wall)
 
 
-def print_timing(
-    queue_wait: Optional[float],
-    run_elapsed: Optional[float],
-    total_wall: Optional[float],
-) -> None:
-    print(
-        "TIMING: "
-        f"queue_wait={fmt(queue_wait)}, "
-        f"run_duration={fmt(run_elapsed)}, "
-        f"total_wall={fmt(total_wall)}"
-    )
+# def print_timing(
+#     queue_wait: Optional[float],
+#     run_elapsed: Optional[float],
+#     total_wall: Optional[float],
+# ) -> None:
+#     print(
+#         "TIMING: "
+#         f"queue_wait={fmt(queue_wait)}, "
+#         f"run_duration={fmt(run_elapsed)}, "
+#         f"total_wall={fmt(total_wall)}"
+#     )

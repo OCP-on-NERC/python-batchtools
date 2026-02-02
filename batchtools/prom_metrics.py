@@ -154,6 +154,7 @@ def push_registry_text(grouping_key: dict[str, str] | None = None) -> None:
             registry=registry,
             grouping_key=grouping_key or {},
         )
-        print(f"PROM: metrics pushed to pushgateway={PUSHGATEWAY_ADDR}")
+        # print(f"PROM: metrics pushed to pushgateway={PUSHGATEWAY_ADDR}")
     except Exception as e:
-        print(f"PROM: failed to push metrics to pushgateway {PUSHGATEWAY_ADDR}: {e}")
+        pass
+        # print(f"PROM: failed to push metrics to pushgateway {PUSHGATEWAY_ADDR}: {e}")

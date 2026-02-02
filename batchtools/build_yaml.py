@@ -25,7 +25,6 @@ rsync -q --archive --no-owner --no-group \
 
 oc rsh {devpod_name} rm -f \
   {jobs_dir}/{job_name}/getlist
-
 """
 
 
