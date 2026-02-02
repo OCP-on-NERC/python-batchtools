@@ -229,7 +229,7 @@ class CreateJobCommand(Command):
             sys.exit(f"Error occurred while creating job: {e}")
 
         if args.job_delete and args.wait:
-            subprocess.run(["cat", f"jobs/{job_name}.log"], check=True)
+            subprocess.run(["cat", f"jobs/{job_name}/{job_name}.log"], check=True)
             print(f"RUNDIR: jobs/{job_name}")
             oc_delete("job", job_name)
         else:
