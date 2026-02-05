@@ -17,6 +17,7 @@ from .build_yaml import build_job_body
 from .helpers import oc_delete
 from .helpers import fmt
 from .file_setup import prepare_context
+from pathlib import Path
 from .prom_metrics import (
     PROMETHEUS_INSTANCE,
     IN_PROGRESS,
@@ -229,8 +230,27 @@ class CreateJobCommand(Command):
             sys.exit(f"Error occurred while creating job: {e}")
 
         if args.job_delete and args.wait:
-            subprocess.run(["cat", f"jobs/{job_name}/{job_name}.log"], check=True)
-            print(f"RUNDIR: jobs/{job_name}")
+            job_dir = Path("jobs") / job_name
+            log_file = job_dir / f"{job_name}.log"
+            
+            if result_phase == "succeeded":
+                # Wait for the log file to appear (rsync may take a moment)
+                max_wait = 10  # seconds
+                wait_interval = 0.5
+                elapsed = 0
+                
+                while not log_file.exists() and elapsed < max_wait:
+                    time.sleep(wait_interval)
+                    elapsed += wait_interval
+                
+                if log_file.exists():
+                    subprocess.run(["cat", f"jobs/{job_name}/{job_name}.log"], check=True)
+                    print(f"RUNDIR: jobs/{job_name}")
+                else:
+                    print(f"Warning: Log file not found after {max_wait}s. Check jobs/{job_name}/")
+            else:
+                print("Something went wrong with running your job. Check over your code and please try again.")
+            
             oc_delete("job", job_name)
         else:
             print(

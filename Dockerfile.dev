@@ -1,0 +1,92 @@
+# Ultimately to be consistent with the Red Hat Open AI (RHOAI) environment
+# (and attendant HW) that is avaiable to us in the NERC MOC we base our
+# images on the RHOAI provided images.  The src for these are maintained
+# here:
+#  https://github.com/red-hat-data-services/notebooks
+# the images are published here:
+#  https://quay.io/organization/modh
+#
+
+# The image we have choosen is
+#  quay.io/modh/cuda-notebooks:cuda-jupyter-minimal-ubi9-python-3.11-20250808
+
+# NERC maintains a drived based image that added various packages we need for
+# our development environment see distro packages below
+# src: https://github.com/nerc-images/csw-base-cuda-minimal
+# img: quay.io/nerc-images/csw-base-cuda-minimal:latest
+FROM quay.io/nerc-images/csw-base-cuda-minimal:latest
+
+USER root
+
+# CUDA
+# the following repo is already available from the base so we don't re add but here
+# for documentation purposes
+# as per https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#network-repo-installation-for-fedora
+# we do this so that additional repositories are available even non-NVIDIA ones
+
+# add nvidia nsight-systems cli : https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html
+RUN rpm --import https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub && \
+    dnf config-manager --add-repo "https://developer.download.nvidia.com/devtools/repos/rhel$(source /etc/os-release; echo ${VERSION_ID%%.*})/$(rpm --eval '%{_arch}' | sed s/aarch/arm/)/"
+    
+# add cmake so that nvidia samples can be built    
+RUN dnf install -y \
+ nsight-systems-cli && \
+ yum clean all \
+ && rm -rf /var/cache/yum/*
+
+# DISTRO PACKAGES
+#  nerc minimal has all the based distro packages we need see
+#    https://github.com/nerc-images/csw-base-cuda-minimal/blob/main/Containerfile
+# cmake, emacs, bc, jq, texlive, man-pages 
+
+# PYTHON PACKAGES
+#  python stuff for ope compatability
+RUN pip install \
+    nbstripout \
+    jupyter-book \
+    ghp-import \
+    jupytext \
+    jupyter_nbextensions_configurator \
+    jupyter_contrib_nbextensions \
+    jupyterlab-spellchecker \
+    nbconvert \
+    pyppeteer \
+    jupyterlab-myst \
+    nbgitpuller \
+    jupyterlab_rise \
+    pyright \
+    python-lsp-server
+
+# bash kernel to make it easier bash based juypter notebooks
+RUN pip install bash_kernel && python -m bash_kernel.install
+
+# as per the nbstripout readme we setup nbstripout be always be used for the joyvan user for all repos
+RUN nbstripout --install --system 
+
+# OPE TOOLS
+RUN mkdir /home/ope && \
+    cd /home/ope && \
+    git clone https://github.com/OPEFFORT/tools.git . && \
+    ./install.sh && \
+    fix-permissions /home/ope
+
+# CUDA SUDA WUDA TOOLS
+RUN mkdir /home/csw && \
+    cd /home/csw && \
+    git clone https://github.com/jappavoo/batchtools.git && \
+    for f in /home/csw/batchtools/b*; do \
+       ln -s $f /usr/local/bin/$(basename $f); \
+    done
+
+COPY . /tools
+RUN pwd && ls -la && ls -la /tools
+WORKDIR /tools
+RUN pip install -e .
+
+# Cats and dogs python packages
+RUN pip install \
+    numpy \
+    matplotlib \
+    pandas
+    
+USER 1001
