@@ -236,7 +236,7 @@ class CreateJobCommand(Command):
             if result_phase == "succeeded":
                 # Wait for the log file to appear (rsync may take a moment)
                 max_wait =  3600 # seconds
-                wait_interval = 1
+                wait_interval = .5
                 elapsed = 0
                 
                 while not log_file.exists() and elapsed < max_wait:
