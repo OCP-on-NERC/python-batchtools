@@ -235,8 +235,8 @@ class CreateJobCommand(Command):
             
             if result_phase == "succeeded":
                 # Wait for the log file to appear (rsync may take a moment)
-                max_wait = 10  # seconds
-                wait_interval = 0.5
+                max_wait =  3600 # seconds
+                wait_interval = 1
                 elapsed = 0
                 
                 while not log_file.exists() and elapsed < max_wait:
@@ -247,7 +247,7 @@ class CreateJobCommand(Command):
                     subprocess.run(["cat", f"jobs/{job_name}/{job_name}.log"], check=True)
                     print(f"RUNDIR: jobs/{job_name}")
                 else:
-                    print(f"Warning: Log file not found after {max_wait}s. Check jobs/{job_name}/")
+                    print(f"Warning: Log file not found after {max_wait}s. Check jobs/{job_name}")
             else:
                 print("Something went wrong with running your job. Check over your code and please try again.")
             
