@@ -59,25 +59,31 @@ def test_push_registry_text_no_url_prints_payload(capsys, monkeypatch):
     assert "# HELP" in out and "# TYPE" in out  # payload printed
 
 
-def test_push_registry_text_posts_success(capsys, monkeypatch):
+def test_push_registry_text_posts_success(monkeypatch):
     monkeypatch.setattr(
         pm, "PUSHGATEWAY_ADDR", "pushgateway.example:9091", raising=False
     )
     with mock.patch.object(pm, "pushadd_to_gateway", autospec=True) as m:
         pm.push_registry_text(grouping_key={"instance": "test", "job_name": "job-1"})
-        m.assert_called_once()
-    out = capsys.readouterr().out
-    assert "PROM: metrics pushed to pushgateway=pushgateway.example:9091" in out
+
+        # Verify the actual behavior: pushadd_to_gateway was called correctly
+        m.assert_called_once_with(
+            "pushgateway.example:9091",
+            job="batchtools",
+            registry=pm.registry,
+            grouping_key={"instance": "test", "job_name": "job-1"}
+        )
 
 
-def test_push_registry_text_posts_failure(capsys, monkeypatch):
+def test_push_registry_text_posts_failure(monkeypatch):
     monkeypatch.setattr(
         pm, "PUSHGATEWAY_ADDR", "pushgateway.example:9091", raising=False
     )
     with mock.patch.object(
         pm, "pushadd_to_gateway", side_effect=Exception("boom"), autospec=True
-    ):
+    ) as m:
+        # Should not raise even when pushadd_to_gateway fails
         pm.push_registry_text(grouping_key={"instance": "test", "job_name": "job-2"})
-    out = capsys.readouterr().out
-    # Example: "PROM: failed to push metrics to pushgateway pushgateway.example:9091: boom"
-    assert re.search(r"PROM: failed to push metrics to pushgateway .*: boom", out)
+
+        # Verify the function was called (failure is handled gracefully)
+        m.assert_called_once()

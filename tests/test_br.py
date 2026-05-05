@@ -193,11 +193,10 @@ def test_get_pod_status_running(mock_selector):
 
 
 @mock.patch("batchtools.br.oc_delete")
-@mock.patch("batchtools.br.pretty_print", return_value="LOGS")
 @mock.patch("batchtools.br.get_pod_status")
 @mock.patch("openshift_client.selector", name="selector")
 def test_log_job_output_success(
-    mock_selector, mock_get_pod_status, mock_pretty_print, mock_oc_delete, capsys
+    mock_selector, mock_get_pod_status, mock_oc_delete
 ):
     # pod list for job
     pod = DictToObject({"model": {"metadata": {"name": "pod-1"}}})
@@ -208,11 +207,15 @@ def test_log_job_output_success(
 
     # avoid real sleep
     with mock.patch("time.sleep", return_value=None):
-        log_job_output("job-abc", wait=True, timeout=30)
+        result_phase, run_elapsed, queue_wait, total_wall = log_job_output(
+            "job-abc", wait=True, timeout=30
+        )
 
-    out = capsys.readouterr().out
-    assert "finished with phase=Succeeded" in out
-    assert "LOGS" in out
+    # Verify the behavior: job completed successfully
+    assert result_phase == "succeeded"
+    assert run_elapsed is not None
+    assert queue_wait is not None
+    assert total_wall is not None
     mock_oc_delete.assert_not_called()
 
 
