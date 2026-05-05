@@ -195,9 +195,7 @@ def test_get_pod_status_running(mock_selector):
 @mock.patch("batchtools.br.oc_delete")
 @mock.patch("batchtools.br.get_pod_status")
 @mock.patch("openshift_client.selector", name="selector")
-def test_log_job_output_success(
-    mock_selector, mock_get_pod_status, mock_oc_delete
-):
+def test_log_job_output_success(mock_selector, mock_get_pod_status, mock_oc_delete):
     # pod list for job
     pod = DictToObject({"model": {"metadata": {"name": "pod-1"}}})
     mock_selector.return_value = mock.Mock(**{"objects.return_value": [pod]})

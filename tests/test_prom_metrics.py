@@ -1,4 +1,3 @@
-import re
 from unittest import mock
 import batchtools.prom_metrics as pm
 
@@ -71,7 +70,7 @@ def test_push_registry_text_posts_success(monkeypatch):
             "pushgateway.example:9091",
             job="batchtools",
             registry=pm.registry,
-            grouping_key={"instance": "test", "job_name": "job-1"}
+            grouping_key={"instance": "test", "job_name": "job-1"},
         )
 
 

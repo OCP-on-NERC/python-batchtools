@@ -27,8 +27,8 @@ USER root
 # add nvidia nsight-systems cli : https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html
 RUN rpm --import https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub && \
     dnf config-manager --add-repo "https://developer.download.nvidia.com/devtools/repos/rhel$(source /etc/os-release; echo ${VERSION_ID%%.*})/$(rpm --eval '%{_arch}' | sed s/aarch/arm/)/"
-    
-# add cmake so that nvidia samples can be built    
+
+# add cmake so that nvidia samples can be built
 RUN dnf install -y \
  nsight-systems-cli && \
  yum clean all \
@@ -37,7 +37,7 @@ RUN dnf install -y \
 # DISTRO PACKAGES
 #  nerc minimal has all the based distro packages we need see
 #    https://github.com/nerc-images/csw-base-cuda-minimal/blob/main/Containerfile
-# cmake, emacs, bc, jq, texlive, man-pages 
+# cmake, emacs, bc, jq, texlive, man-pages
 
 # PYTHON PACKAGES
 #  python stuff for ope compatability
@@ -61,7 +61,7 @@ RUN pip install \
 RUN pip install bash_kernel && python -m bash_kernel.install
 
 # as per the nbstripout readme we setup nbstripout be always be used for the joyvan user for all repos
-RUN nbstripout --install --system 
+RUN nbstripout --install --system
 
 # OPE TOOLS
 RUN mkdir /home/ope && \
@@ -88,5 +88,5 @@ RUN pip install \
     numpy \
     matplotlib \
     pandas
-    
+
 USER 1001

@@ -83,7 +83,8 @@ def test_ignores_non_gpu_named_jobs(args, mixed_jobs):
         DeleteJobsCommand.run(args)
         # Verify delete was called only for job-job-1
         delete_calls = [
-            call for call in mock_sel.call_args_list
+            call
+            for call in mock_sel.call_args_list
             if len(call.args) > 0 and call.args[0].startswith("job/")
         ]
         assert len(delete_calls) == 1
@@ -92,12 +93,16 @@ def test_ignores_non_gpu_named_jobs(args, mixed_jobs):
 
 def test_delete_all_when_no_names_given(args, kueue_jobs):
     args.job_names = []  # explicit
-    with patch_selector_with(kueue_jobs) as mock_sel, patch_kueue_managed("job-job-1", "job-job-2"):
+    with (
+        patch_selector_with(kueue_jobs) as mock_sel,
+        patch_kueue_managed("job-job-1", "job-job-2"),
+    ):
         DeleteJobsCommand.run(args)
 
         # Verify delete was called for both jobs
         delete_calls = [
-            call for call in mock_sel.call_args_list
+            call
+            for call in mock_sel.call_args_list
             if len(call.args) > 0 and call.args[0].startswith("job/")
         ]
         assert len(delete_calls) == 2
@@ -112,7 +117,8 @@ def test_delete_only_specified_allowed(args, kueue_jobs, capsys):
 
         # Verify only job-job-1 was deleted
         delete_calls = [
-            call for call in mock_sel.call_args_list
+            call
+            for call in mock_sel.call_args_list
             if len(call.args) > 0 and call.args[0].startswith("job/")
         ]
         assert len(delete_calls) == 1
@@ -125,12 +131,16 @@ def test_delete_only_specified_allowed(args, kueue_jobs, capsys):
 
 def test_only_deletes_listed_names_even_if_more_kueue(args, kueue_jobs):
     args.job_names = ["job-job-2"]
-    with patch_selector_with(kueue_jobs) as mock_sel, patch_kueue_managed("job-job-1", "job-job-2"):
+    with (
+        patch_selector_with(kueue_jobs) as mock_sel,
+        patch_kueue_managed("job-job-1", "job-job-2"),
+    ):
         DeleteJobsCommand.run(args)
 
         # Verify only job-job-2 was deleted, not job-job-1
         delete_calls = [
-            call for call in mock_sel.call_args_list
+            call
+            for call in mock_sel.call_args_list
             if len(call.args) > 0 and call.args[0].startswith("job/")
         ]
         assert len(delete_calls) == 1
